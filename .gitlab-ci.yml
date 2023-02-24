@@ -1,0 +1,36 @@
+image: node:16.14.0-alpine
+
+services:
+  - docker:20.10.16-dind
+
+# global cache (apply for all jobs in all stages)
+cache:
+  key: ${CI_COMMIT_REF_SLUG} # only apply for current branch
+  paths:
+    - node_modules
+
+stages:
+  - install
+  - lint
+  - prettier
+
+# install npm dependencies so it'll be cache in subsequent jobs
+install_dependencies:
+  stage: install
+  script:
+    - yarn install
+
+lint:code:
+  stage: lint
+  script:
+    - yarn run lint
+
+lint:commit:
+  stage: lint
+  script:
+    - echo "$CI_COMMIT_MESSAGE" | npx commitlint
+
+prettier:check:
+  stage: prettier
+  script:
+    - yarn run format:check
